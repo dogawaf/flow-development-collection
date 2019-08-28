@@ -4,7 +4,6 @@ namespace Neos\Flow\Log\ThrowableStorage;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Core\Bootstrap;
 use Neos\Flow\Error\Debugger;
-use Neos\Flow\Http\Helper\RequestInformationHelper;
 use Neos\Flow\Http\HttpRequestHandlerInterface;
 use Neos\Flow\Log\PlainTextFormatter;
 use Neos\Flow\Log\ThrowableStorageInterface;
@@ -43,7 +42,9 @@ class FileStorage implements ThrowableStorageInterface
     public static function createWithOptions(array $options): ThrowableStorageInterface
     {
         $storagePath = $options['storagePath'] ?? (FLOW_PATH_DATA . 'Logs/Exceptions');
-        return new static($storagePath);
+        $storage = new static($storagePath);
+
+        return $storage;
     }
 
     /**
@@ -71,9 +72,8 @@ class FileStorage implements ThrowableStorageInterface
 
             $request = $requestHandler->getHttpRequest();
             $response = $requestHandler->getHttpResponse();
-            // TODO: Sensible error output
-            $output .= PHP_EOL . 'HTTP REQUEST:' . PHP_EOL . ($request == '' ? '[request was empty]' : RequestInformationHelper::renderRequestHeaders($request)) . PHP_EOL;
-            $output .= PHP_EOL . 'HTTP RESPONSE:' . PHP_EOL . ($response == '' ? '[response was empty]' : $response->getStatusCode()) . PHP_EOL;
+            $output .= PHP_EOL . 'HTTP REQUEST:' . PHP_EOL . ($request == '' ? '[request was empty]' : $request) . PHP_EOL;
+            $output .= PHP_EOL . 'HTTP RESPONSE:' . PHP_EOL . ($response == '' ? '[response was empty]' : $response) . PHP_EOL;
             $output .= PHP_EOL . 'PHP PROCESS:' . PHP_EOL . 'Inode: ' . getmyinode() . PHP_EOL . 'PID: ' . getmypid() . PHP_EOL . 'UID: ' . getmyuid() . PHP_EOL . 'GID: ' . getmygid() . PHP_EOL . 'User: ' . get_current_user() . PHP_EOL;
 
             return $output;

@@ -11,7 +11,8 @@ namespace Neos\Flow\Http\Component;
  * source code.
  */
 
-use Psr\Http\Message\ResponseInterface;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Http\Response;
 
 /**
  * The HTTP component chain
@@ -29,7 +30,7 @@ class ComponentChain implements ComponentInterface
     protected $options;
 
     /**
-     * @var ResponseInterface
+     * @var Response
      */
     protected $response;
 
@@ -67,9 +68,9 @@ class ComponentChain implements ComponentInterface
     }
 
     /**
-     * @return ResponseInterface
+     * @return Response
      */
-    public function getResponse(): ResponseInterface
+    public function getResponse()
     {
         return $this->response;
     }

@@ -1,7 +1,5 @@
 <?php
-namespace Neos\Http\Factories;
-
-use GuzzleHttp\Psr7\UploadedFile;
+namespace Neos\Flow\Http;
 
 /**
  * A Flow specific uploaded file.

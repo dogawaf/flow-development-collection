@@ -11,12 +11,11 @@ namespace Neos\Flow\Tests\Functional\Security;
  * source code.
  */
 
-use Neos\Flow\Http\Cookie;
-use GuzzleHttp\Psr7\Uri;
+use Neos\Flow\Http\Request;
+use Neos\Flow\Http\Uri;
 use Neos\Flow\Security\AccountFactory;
 use Neos\Flow\Security\AccountRepository;
 use Neos\Flow\Tests\FunctionalTestCase;
-use Psr\Http\Message\ServerRequestFactoryInterface;
 
 /**
  * Functional testcase for certain aspects of CSRF protection.
@@ -38,7 +37,7 @@ class CsrfProtectionTest extends FunctionalTestCase
     /**
      * @return void
      */
-    protected function setUp(): void
+    public function setUp()
     {
         parent::setUp();
 
@@ -74,22 +73,17 @@ class CsrfProtectionTest extends FunctionalTestCase
     {
         $this->markTestIncomplete('Needs to be implemented');
 
-        /** @var ServerRequestFactoryInterface $serverRequestFactory */
-        $serverRequestFactory = $this->objectManager->get(ServerRequestFactoryInterface::class);
-
         $arguments = [];
         $arguments['__authentication']['Neos']['Flow']['Security']['Authentication']['Token']['UsernamePassword']['username'] = 'admin';
         $arguments['__authentication']['Neos']['Flow']['Security']['Authentication']['Token']['UsernamePassword']['password'] = 'password';
 
-        $request = $serverRequestFactory->createServerRequest('GET', new Uri('http://localhost/test/security/authentication/usernamepassword/authenticate'));
-        $request = $request->withQueryParams($arguments);
+        $request = Request::create(new Uri('http://localhost/test/security/authentication/usernamepassword/authenticate'), 'POST', $arguments);
         $response = $this->browser->sendRequest($request);
 
-        $cookieHeader = $response->getHeaderLine('Set-Cookie');
-        $cookie = Cookie::createFromRawSetCookieHeader($cookieHeader);
+        $sessionCookie = $response->getCookie('TYPO3_Flow_Session');
 
-        $request = $serverRequestFactory->createServerRequest('GET', new Uri('http://localhost/test/security/restricted/admin'));
-        $request = $request->withHeader('Cookie', (string)$cookie);
+        $request = Request::create(new Uri('http://localhost/test/security/restricted/admin'));
+        $request->setCookie($sessionCookie);
         $response = $this->browser->sendRequest($request);
 
         // Expect an exception because no account is authenticated:
@@ -102,7 +96,7 @@ class CsrfProtectionTest extends FunctionalTestCase
 
         // Expect that it works after you logged in
         $csrfToken = $this->securityContext->getCsrfProtectionToken();
-        $request = $serverRequestFactory->createServerRequest('POST', 'http://localhost/test/security/restricted/customer');
+        $request = Request::create(new Uri('http://localhost/test/security/restricted/customer'), 'POST');
         // ...
     }
 }

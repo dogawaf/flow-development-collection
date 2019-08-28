@@ -31,7 +31,7 @@ class AbstractBackendTest extends BaseTestCase
     /**
      * @return void
      */
-    protected function setUp(): void
+    public function setUp()
     {
         class_exists(AbstractBackend::class);
         $className = 'ConcreteBackend_' . md5(uniqid(mt_rand(), true));
@@ -63,6 +63,6 @@ class AbstractBackendTest extends BaseTestCase
     {
         $className = get_class($this->backend);
         $backend = new $className(new EnvironmentConfiguration('Ultraman Neos Testing', '/some/path', PHP_MAXPATHLEN), ['someOption' => 'someValue']);
-        self::assertSame('someValue', $backend->getSomeOption());
+        $this->assertSame('someValue', $backend->getSomeOption());
     }
 }

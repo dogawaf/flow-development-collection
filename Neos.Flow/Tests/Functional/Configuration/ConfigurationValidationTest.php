@@ -66,7 +66,7 @@ class ConfigurationValidationTest extends FunctionalTestCase
     /**
      * @return void
      */
-    protected function setUp(): void
+    public function setUp()
     {
         parent::setUp();
 
@@ -112,7 +112,7 @@ class ConfigurationValidationTest extends FunctionalTestCase
     /**
      * @return void
      */
-    protected function tearDown(): void
+    public function tearDown()
     {
         $this->objectManager->setInstance(ConfigurationManager::class, $this->originalConfigurationManager);
         $this->injectApplicationContextIntoConfigurationManager($this->objectManager->getContext());
@@ -179,7 +179,7 @@ class ConfigurationValidationTest extends FunctionalTestCase
             }
             $this->fail($output);
         }
-        self::assertFalse($validationResult->hasErrors());
+        $this->assertFalse($validationResult->hasErrors());
     }
 
     /**

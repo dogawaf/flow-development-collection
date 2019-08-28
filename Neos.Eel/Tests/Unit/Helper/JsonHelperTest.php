@@ -44,7 +44,7 @@ class JsonHelperTest extends \Neos\Flow\Tests\UnitTestCase
     {
         $helper = new JsonHelper();
         $result = $helper->stringify($value);
-        self::assertEquals($expected, $result);
+        $this->assertEquals($expected, $result);
     }
 
     public function parseExamples()
@@ -79,6 +79,6 @@ class JsonHelperTest extends \Neos\Flow\Tests\UnitTestCase
     {
         $helper = new JsonHelper();
         $result = call_user_func_array([$helper, 'parse'], $arguments);
-        self::assertEquals($expected, $result);
+        $this->assertEquals($expected, $result);
     }
 }

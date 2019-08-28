@@ -11,11 +11,10 @@ namespace Neos\Flow\Mvc\Routing;
  * source code.
  */
 
-use Doctrine\Tests\Models\Cache\Action;
 use Neos\Flow\Annotations as Flow;
-use Neos\Flow\Http\Helper\RequestInformationHelper;
-use Neos\Flow\Http\ServerRequestAttributes;
+use Neos\Flow\Http\Request;
 use Neos\Flow\Mvc\ActionRequest;
+use Neos\Flow\Mvc\RequestInterface;
 use Neos\Flow\Mvc\Routing\Dto\ResolveContext;
 use Neos\Utility\Arrays;
 
@@ -136,7 +135,7 @@ class UriBuilder
      */
     public function setSection($section)
     {
-        $this->section = (string)$section;
+        $this->section = $section;
         return $this;
     }
 
@@ -321,12 +320,12 @@ class UriBuilder
      * )
      *
      * @param array $arguments arguments
-     * @param ActionRequest $currentRequest
+     * @param RequestInterface $currentRequest
      * @return array arguments with namespace
      */
-    protected function addNamespaceToArguments(array $arguments, ActionRequest $currentRequest)
+    protected function addNamespaceToArguments(array $arguments, RequestInterface $currentRequest)
     {
-        while ($currentRequest instanceof ActionRequest && !$currentRequest->isMainRequest()) {
+        while (!$currentRequest->isMainRequest()) {
             $argumentNamespace = $currentRequest->getArgumentNamespace();
             if ($argumentNamespace !== '') {
                 $arguments = [$argumentNamespace => $arguments];
@@ -351,8 +350,8 @@ class UriBuilder
         $httpRequest = $this->request->getHttpRequest();
 
         $uriPathPrefix = $this->environment->isRewriteEnabled() ? '' : 'index.php/';
-        $uriPathPrefix = RequestInformationHelper::getScriptRequestPath($httpRequest) . $uriPathPrefix;
-        $resolveContext = new ResolveContext($httpRequest->getAttribute(ServerRequestAttributes::BASE_URI), $arguments, $this->createAbsoluteUri, $uriPathPrefix);
+        $uriPathPrefix = $httpRequest->getScriptRequestPath() . $uriPathPrefix;
+        $resolveContext = new ResolveContext($httpRequest->getBaseUri(), $arguments, $this->createAbsoluteUri, $uriPathPrefix);
         $resolvedUri = $this->router->resolve($resolveContext);
         if ($this->section !== '') {
             $resolvedUri = $resolvedUri->withFragment($this->section);
@@ -458,14 +457,12 @@ class UriBuilder
      * @param ActionRequest $request
      * @return string
      */
-    protected function getRequestNamespacePath(ActionRequest $request): string
+    protected function getRequestNamespacePath($request)
     {
-        $namespaceParts = [];
-        while ($request !== null && $request->isMainRequest() === false) {
-            $namespaceParts[] = $request->getArgumentNamespace();
-            $request = $request->getParentRequest();
+        if (!$request instanceof Request) {
+            $parentPath = $this->getRequestNamespacePath($request->getParentRequest());
+            return $parentPath . ($parentPath !== '' && $request->getArgumentNamespace() !== '' ? '.' : '') . $request->getArgumentNamespace();
         }
-
-        return implode('.', array_reverse($namespaceParts));
+        return '';
     }
 }

@@ -254,7 +254,6 @@ class Arguments extends \ArrayObject
     {
         $results = new Result();
 
-        /* @var $argument Argument */
         foreach ($this as $argument) {
             $argumentValidationResults = $argument->getValidationResults();
             if ($argumentValidationResults === null) {

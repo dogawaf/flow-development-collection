@@ -15,10 +15,7 @@ use Neos\Flow\Configuration\ConfigurationManager;
 use Neos\Flow\Core\Bootstrap;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Http\Component\ComponentContext;
-use Neos\Http\Factories\ResponseFactory;
-use Neos\Http\Factories\ServerRequestFactory;
-use Neos\Http\Factories\UriFactory;
-use Psr\Http\Message\ServerRequestInterface as HttpRequest;
+use Neos\Flow\Http\Request;
 use Neos\Flow\Mvc\ActionRequest;
 use Neos\Flow\Mvc\Routing\Dto\RouteParameters;
 use Neos\Flow\Mvc\Routing\Dto\RouteContext;
@@ -122,7 +119,7 @@ abstract class FunctionalTestCase extends \Neos\Flow\Tests\BaseTestCase
      *
      * @return void
      */
-    public static function setUpBeforeClass(): void
+    public static function setUpBeforeClass()
     {
         self::$bootstrap = \Neos\Flow\Core\Bootstrap::$staticObjectManager->get(\Neos\Flow\Core\Bootstrap::class);
         self::setupSuperGlobals();
@@ -136,7 +133,7 @@ abstract class FunctionalTestCase extends \Neos\Flow\Tests\BaseTestCase
      *
      * @return void
      */
-    protected function setUp(): void
+    public function setUp()
     {
         $this->objectManager = self::$bootstrap->getObjectManager();
 
@@ -212,12 +209,12 @@ abstract class FunctionalTestCase extends \Neos\Flow\Tests\BaseTestCase
     }
 
     /**
-     * @param HttpRequest $httpRequest
+     * @param Request $httpRequest
      * @return ActionRequest
      */
-    protected function route(HttpRequest $httpRequest)
+    protected function route(Request $httpRequest)
     {
-        $actionRequest = ActionRequest::fromHttpRequest($httpRequest);
+        $actionRequest = new ActionRequest($httpRequest);
         $matchResults = $this->router->route(new RouteContext($httpRequest, RouteParameters::createEmpty()));
         if ($matchResults !== null) {
             $requestArguments = $actionRequest->getArguments();
@@ -237,7 +234,7 @@ abstract class FunctionalTestCase extends \Neos\Flow\Tests\BaseTestCase
      *
      * @return void
      */
-    protected function tearDown(): void
+    public function tearDown()
     {
         $this->tearDownSecurity();
 
@@ -427,12 +424,9 @@ abstract class FunctionalTestCase extends \Neos\Flow\Tests\BaseTestCase
         $this->router = $this->browser->getRequestEngine()->getRouter();
         $this->router->setRoutesConfiguration(null);
 
-        $serverRequestFactory = new ServerRequestFactory(new UriFactory());
-        $responseFactory = new ResponseFactory();
-
         $requestHandler = self::$bootstrap->getActiveRequestHandler();
-        $request = $serverRequestFactory->createServerRequest('GET', 'http://localhost/typo3/flow/test');
-        $componentContext = new ComponentContext($request, $responseFactory->createResponse());
+        $request = Request::create(new \Neos\Flow\Http\Uri('http://localhost/typo3/flow/test'));
+        $componentContext = new ComponentContext($request, new \Neos\Flow\Http\Response());
         $requestHandler->setComponentContext($componentContext);
     }
 

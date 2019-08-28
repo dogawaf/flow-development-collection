@@ -11,7 +11,6 @@ namespace Neos\Flow\Tests\Functional\Property\TypeConverter;
  * source code.
  */
 
-use Neos\Flow\Property\Exception\InvalidTargetException;
 use Neos\Flow\Property\PropertyMappingConfiguration;
 use Neos\Flow\Property\TypeConverter\ObjectConverter;
 use Neos\Utility\ObjectAccess;
@@ -27,7 +26,7 @@ class ObjectConverterTest extends FunctionalTestCase
      */
     protected $converter;
 
-    protected function setUp(): void
+    public function setUp()
     {
         parent::setUp();
         $this->converter = $this->objectManager->get(ObjectConverter::class);
@@ -49,7 +48,7 @@ class ObjectConverterTest extends FunctionalTestCase
                 $expectedTargetType);
 
         $actual = $this->converter->getTypeOfChildProperty('irrelevant', $propertyName, $configuration);
-        self::assertEquals($expectedTargetType, $actual);
+        $this->assertEquals($expectedTargetType, $actual);
     }
 
     /**
@@ -62,7 +61,7 @@ class ObjectConverterTest extends FunctionalTestCase
             'dummy',
             new PropertyMappingConfiguration()
         );
-        self::assertEquals('float', $actual);
+        $this->assertEquals('float', $actual);
     }
 
     /**
@@ -75,16 +74,16 @@ class ObjectConverterTest extends FunctionalTestCase
             'attributeWithStringTypeAnnotation',
             new PropertyMappingConfiguration()
         );
-        self::assertEquals('string', $actual);
+        $this->assertEquals('string', $actual);
     }
 
     /**
      * @test
+     * @expectedException \Neos\Flow\Property\Exception\InvalidTargetException
+     * @expectedExceptionCode 1406821818
      */
     public function getTypeOfChildPropertyThrowsExceptionIfThatPropertyIsPubliclyPresentButHasNoProperTypeAnnotation()
     {
-        $this->expectExceptionCode(1406821818);
-        $this->expectException(InvalidTargetException::class);
         $this->converter->getTypeOfChildProperty(
             Fixtures\TestClass::class,
             'somePublicPropertyWithoutVarAnnotation',
@@ -103,7 +102,7 @@ class ObjectConverterTest extends FunctionalTestCase
             'somePublicProperty',
             $configuration
         );
-        self::assertEquals('float', $actual);
+        $this->assertEquals('float', $actual);
     }
 
     /**
@@ -122,9 +121,9 @@ class ObjectConverterTest extends FunctionalTestCase
             new PropertyMappingConfiguration()
         );
 
-        self::assertEquals('theValue set via Constructor', ObjectAccess::getProperty($convertedObject, 'propertyMeantForConstructorUsage', true));
-        self::assertEquals('theValue set via Setter', ObjectAccess::getProperty($convertedObject, 'propertyMeantForSetterUsage', true));
-        self::assertEquals('theValue', ObjectAccess::getProperty($convertedObject, 'propertyMeantForPublicUsage', true));
+        $this->assertEquals('theValue set via Constructor', ObjectAccess::getProperty($convertedObject, 'propertyMeantForConstructorUsage', true));
+        $this->assertEquals('theValue set via Setter', ObjectAccess::getProperty($convertedObject, 'propertyMeantForSetterUsage', true));
+        $this->assertEquals('theValue', ObjectAccess::getProperty($convertedObject, 'propertyMeantForPublicUsage', true));
     }
 
     /**
@@ -140,7 +139,7 @@ class ObjectConverterTest extends FunctionalTestCase
             'someUnknownProperty',
             $configuration
         );
-        self::assertNull($result);
+        $this->assertNull($result);
     }
 
     /**
@@ -156,7 +155,7 @@ class ObjectConverterTest extends FunctionalTestCase
             'someUnknownProperty',
             $configuration
         );
-        self::assertNull($result);
+        $this->assertNull($result);
     }
 
     /**
@@ -168,15 +167,15 @@ class ObjectConverterTest extends FunctionalTestCase
             'irrelevant',
             \Neos\Flow\Tests\Functional\Property\Fixtures\TestClassWithSingletonConstructorInjection::class
         );
-        self::assertInstanceOf(\Neos\Flow\Tests\Functional\ObjectManagement\Fixtures\InterfaceAImplementation::class, $convertedObject->getSingletonClass());
+        $this->assertInstanceOf(\Neos\Flow\Tests\Functional\ObjectManagement\Fixtures\InterfaceAImplementation::class, $convertedObject->getSingletonClass());
     }
 
     /**
      * @test
+     * @expectedException \Neos\Flow\Property\Exception\InvalidTargetException
      */
     public function convertFromThrowsMeaningfulExceptionWhenTheTargetExpectsAnUnknownDependencyThatIsNotSpecifiedInTheSource()
     {
-        $this->expectException(InvalidTargetException::class);
         $this->converter->convertFrom(
             'irrelevant',
             \Neos\Flow\Tests\Functional\Property\Fixtures\TestClassWithThirdPartyClassConstructorInjection::class
